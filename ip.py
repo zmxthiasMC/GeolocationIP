@@ -1,4 +1,20 @@
 import requests
+from colorama import Fore, Style, init
+
+# Inicializar colorama
+init(autoreset=True)
+
+def print_logo():
+    logo = """
+    ███████╗██╗      ██████╗  ██████╗  ██████╗ ███████╗██████╗ 
+    ██╔════╝██║     ██╔═══██╗██╔════╝ ██╔════╝ ██╔════╝██╔══██╗
+    █████╗  ██║     ██║   ██║██║  ███╗██║  ███╗█████╗  ██████╔╝
+    ██╔══╝  ██║     ██║   ██║██║   ██║██║   ██║██╔══╝  ██╔══██╗
+    ██║     ███████╗╚██████╔╝╚██████╔╝╚██████╔╝███████╗██║  ██║
+    ╚═╝     ╚══════╝ ╚═════╝  ╚═════╝  ╚═════╝ ╚══════╝╚═╝  ╚═╝
+    """
+    print(Fore.RED + logo)
+    print(Fore.RED + "Ingrese la IP del objetivo:")
 
 def get_ip():
     response = requests.get('https://api64.ipify.org?format=json')
@@ -74,7 +90,7 @@ def get_location(ip_address):
     return location_data
 
 def get_phone_info():
-    response = requests.get('https://api.example.com/phone_info')
+    response = requests.get('https://lookups.twilio.com/v2/PhoneNumbers/{phone_number}?Type=carrier&Type=caller-name')
     data = response.json()
     phone_data = {
         "phone_brand": data.get("brand"),
@@ -101,9 +117,10 @@ def get_phone_info():
     return phone_data
 
 if __name__ == "__main__":
-    ip = get_ip()
-    location_info = get_location(ip)
+    print_logo()
+    target_ip = input(Fore.RED + ">> ")
+    location_info = get_location(target_ip)
     phone_info = get_phone_info()
     location_info.update(phone_info)
     print(location_info)
-  
+    
