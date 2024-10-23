@@ -65,35 +65,22 @@ def get_location(ip_address):
     }
     return location_data
 
-def get_phone_info(phone_number):
-    api_key = 'TU_API_KEY'
-    url = f'https://lookups.twilio.com/v2/PhoneNumbers/{phone_number}?Type=carrier&Type=caller-name'
-    headers = {
-        'Authorization': f'Bearer {api_key}'
-    }
-    response = requests.get(url, headers=headers)
-    data = response.json()
+def get_phone_info(ip_address):
+    # Usar Numverify API para obtener información del teléfono
+    numverify_api_key = 'TU_API_KEY'
+    numverify_url = f'http://apilayer.net/api/validate?access_key={numverify_api_key}&number={ip_address}'
+    numverify_response = requests.get(numverify_url)
+    numverify_data = numverify_response.json()
+    
     phone_data = {
-        "Marca del Teléfono": data.get("carrier", {}).get("name"),
-        "Modelo del Teléfono": data.get("caller_name", {}).get("caller_name"),
-        "Sistema Operativo del Teléfono": data.get("os"),
-        "Versión del Sistema Operativo del Teléfono": data.get("os_version"),
-        "Bits del Teléfono": data.get("bits"),
-        "Nivel de Batería": data.get("battery_level"),
-        "Estado de Carga": data.get("charging_status"),
-        "Operador de Red": data.get("network_operator"),
-        "Operador de SIM": data.get("sim_operator"),
-        "Fabricante del Dispositivo": data.get("device_manufacturer"),
-        "Modelo del Dispositivo": data.get("device_model"),
-        "ID del Dispositivo": data.get("device_id"),
-        "Número de Serie del Dispositivo": data.get("device_serial"),
-        "IMEI del Dispositivo": data.get("device_imei"),
-        "MEID del Dispositivo": data.get("device_meid"),
-        "IMSI del Dispositivo": data.get("device_imsi"),
-        "MAC del Dispositivo": data.get("device_mac"),
-        "IP del Dispositivo": data.get("device_ip"),
-        "SSID del WiFi del Dispositivo": data.get("device_wifi_ssid"),
-        "BSSID del WiFi del Dispositivo": data.get("device_wifi_bssid")
+        "Número de Teléfono": numverify_data.get("number"),
+        "Validez": numverify_data.get("valid"),
+        "Formato Internacional": numverify_data.get("international_format"),
+        "Formato Nacional": numverify_data.get("local_format"),
+        "País": numverify_data.get("country_name"),
+        "Ubicación": numverify_data.get("location"),
+        "Operador": numverify_data.get("carrier"),
+        "Tipo de Línea": numverify_data.get("line_type")
     }
     return phone_data
 
@@ -105,8 +92,7 @@ if __name__ == "__main__":
     print_logo()
     target_ip = input(Fore.RED + ">> ")
     location_info = get_location(target_ip)
-    phone_number = input(Fore.RED + "Ingrese el número de teléfono del objetivo (con código de país): ")
-    phone_info = get_phone_info(phone_number)
+    phone_info = get_phone_info(target_ip)
     location_info.update(phone_info)
     print_info(location_info)
     
