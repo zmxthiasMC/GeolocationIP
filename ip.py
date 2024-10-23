@@ -14,7 +14,7 @@ def print_logo():
     ╚═╝     ╚══════╝ ╚═════╝  ╚═════╝  ╚═════╝ ╚══════╝╚═╝  ╚═╝
     """
     print(Fore.RED + logo)
-    print(Fore.RED + "Ingrese la IP del objetivo:")
+    print(Fore.RED + "Ingrese las IPs del objetivo (separadas por comas):")
 
 def get_location(ip_address):
     response = requests.get(f'https://ipapi.co/{ip_address}/json/')
@@ -71,28 +71,52 @@ def get_phone_info(ip_address):
     numverify_url = f'http://apilayer.net/api/validate?access_key={numverify_api_key}&number={ip_address}'
     numverify_response = requests.get(numverify_url)
     numverify_data = numverify_response.json()
-    
+
+    # Usar Twilio Lookup API para obtener información adicional del teléfono
+    twilio_api_key = 'TU_API_KEY'
+    twilio_url = f'https://lookups.twilio.com/v2/PhoneNumbers/{ip_address}?Type=carrier&Type=caller-name'
+    twilio_headers = {
+        'Authorization': f'Bearer {twilio_api_key}'
+    }
+    twilio_response = requests.get(twilio_url, headers=twilio_headers)
+    twilio_data = twilio_response.json()
+
     phone_data = {
-        "Número de Teléfono": numverify_data.get("number"),
-        "Validez": numverify_data.get("valid"),
-        "Formato Internacional": numverify_data.get("international_format"),
-        "Formato Nacional": numverify_data.get("local_format"),
-        "País": numverify_data.get("country_name"),
-        "Ubicación": numverify_data.get("location"),
-        "Operador": numverify_data.get("carrier"),
-        "Tipo de Línea": numverify_data.get("line_type")
+        "Marca del Teléfono": twilio_data.get("carrier", {}).get("name"),
+        "Modelo del Teléfono": twilio_data.get("caller_name", {}).get("caller_name"),
+        "Sistema Operativo del Teléfono": twilio_data.get("os"),
+        "Versión del Sistema Operativo del Teléfono": twilio_data.get("os_version"),
+        "Bits del Teléfono": twilio_data.get("bits"),
+        "Nivel de Batería": twilio_data.get("battery_level"),
+        "Estado de Carga": twilio_data.get("charging_status"),
+        "Operador de Red": twilio_data.get("network_operator"),
+        "Operador de SIM": twilio_data.get("sim_operator"),
+        "Fabricante del Dispositivo": twilio_data.get("device_manufacturer"),
+        "Modelo del Dispositivo": twilio_data.get("device_model"),
+        "ID del Dispositivo": twilio_data.get("device_id"),
+        "Número de Serie del Dispositivo": twilio_data.get("device_serial"),
+        "IMEI del Dispositivo": twilio_data.get("device_imei"),
+        "MEID del Dispositivo": twilio_data.get("device_meid"),
+        "IMSI del Dispositivo": twilio_data.get("device_imsi"),
+        "MAC del Dispositivo": twilio_data.get("device_mac"),
+        "IP del Dispositivo": twilio_data.get("device_ip"),
+        "SSID del WiFi del Dispositivo": twilio_data.get("device_wifi_ssid"),
+        "BSSID del WiFi del Dispositivo": twilio_data.get("device_wifi_bssid")
     }
     return phone_data
 
 def print_info(info):
     for key, value in info.items():
-        print(f"{Fore.WHITE}{key}: {Fore.GREEN}{value}")
+        if value:
+            print(f"{Fore.WHITE}{key}: {Fore.GREEN}{value}")
 
 if __name__ == "__main__":
     print_logo()
-    target_ip = input(Fore.RED + ">> ")
-    location_info = get_location(target_ip)
-    phone_info = get_phone_info(target_ip)
-    location_info.update(phone_info)
-    print_info(location_info)
+    target_ips = input(Fore.RED + ">> ").split(',')
+    for ip in target_ips:
+        ip = ip.strip()
+        location_info = get_location(ip)
+        phone_info = get_phone_info(ip)
+        location_info.update(phone_info)
+        print_info(location_info)
     
